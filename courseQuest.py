@@ -18,20 +18,20 @@ def init():
 # get Department Lists
 def getDeptList():
     #global departments,header,degree
-    open("output/DepartmentList.txt","w").write('')
+    open("output/DepartmentList.json","w").write('')
     url = "http://service002.sds.fcu.edu.tw/Service/Search.asmx/GetDeptList"
     # Six Degree
     for degree in range(6):
         data = {"baseOptions":{"lang":"cht","year":105,"sms":2},"degree":degree}    
         r = s.post(url,headers=header,json=data);
         content = "// " + degrees[degree] + "\n" + r.text.encode('utf-8') + '\n'
-        open("output/DepartmentList.txt","a").write(content)
+        open("output/DepartmentList.json","a").write(content)
         departments[degree] = json.loads(r.text)
         print degrees[degree] + " crawled"
     
 # get Department Lists
 def getUnitList():
-    open("output/UnitList.txt","w").write('')
+    open("output/UnitList.json","w").write('')
     url = "http://service002.sds.fcu.edu.tw/Service/Search.asmx/GetUnitList"
     # Six Degree
     for degree in departments:
@@ -43,28 +43,28 @@ def getUnitList():
             data = {"baseOptions":{"lang":"cht","year":105,"sms":2},"degree":degree,"deptId":dept['id']}
             r = s.post(url,headers=header,json=data);
             content = "// " + degrees[degree] + " " + dept['name'].encode('utf-8') + "\n" + r.text.encode('utf-8') + '\n'
-            open("output/UnitList.txt","a").write(content)
+            open("output/UnitList.json","a").write(content)
             units[degree][j]['unit'] = json.loads(json.loads(r.text)['d'])
             j = j+1
 
 # get Department Lists
 def getClassList():
-    open("output/ClassList.txt","w").write('')
+    open("output/ClassList.json","w").write('')
     url = "http://service004.sds.fcu.edu.tw/Service/Search.asmx/GetClassList"
     # Six Degree
     for degree in units:
-        # classs[degree] = depts 
-        j = 0
-        for depts in units[degree]:
-            # classs[degree][j]['unit'] = unit
-            j = j+1
-            for unit in depts['unit']:
+        classs[degree] = units[degree] 
+        for indexOfDept, depts in enumerate(units[degree]):
+            for indexOfUnit, unit in enumerate(depts['unit']):
                 data = {"baseOptions":{"lang":"cht","year":105,"sms":2},"degree":degree,"unitId":unit['id']}
                 r = s.post(url,headers=header,json=data);
                 print unit['name'].encode('utf-8') + " crawed"
                 content = "// " + degrees[degree] + " " + depts['name'].encode('utf-8') + " " + unit['name'].encode('utf-8') + "\n" + r.text.encode('utf-8') + "\n"
-                open("output/ClassList.txt","a").write(content)
-    # return classs
+                open("output/ClassList.json","a").write(content)
+                units[degree][indexOfDept]['unit'][indexOfUnit] = json.loads(json.loads(r.text)['d'])
+                classs[degree] = units[degree] 
+    open("output/CourueList.json","w").write(json.dumps(classs).encode("utf-8"))
+    return classs
 
 init()
 getDeptList()
